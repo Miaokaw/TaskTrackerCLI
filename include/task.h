@@ -10,67 +10,86 @@
 #include <chrono>
 #include <iomanip>
 #include <unordered_map>
+#include <iostream>
+#include <cstring>
 
-class Task
-{
+class Task {
 public:
     inline static std::unordered_map<int, Task> tasks;
 
-    static void readTasksFromJson(const std::string& jsonFilePath);
+    static void readFromJson(const std::string &jsonFilePath);
 
-    static void writeTasksToJson(const std::string& jsonFilePath, Task newTask);
+    static void writeToJson(const std::string &jsonFilePath, const Task &newTask);
+
+    static void list();
+    static void list(const char * str);
+
+    static void update(int id, std::string_view newDescription);
+
+    static void mark(int id, std::string_view newStatus);
+
+    static void del(int id);
 
     explicit Task(const std::string_view description)
-        : description(description), createdTime(std::time(nullptr))
-    {
-        for (int i = 0; ; i++)
-        {
-            // Generate a unique ID for the task
-            id = i;
-            break;
-        }
-        updatedTime = createdTime;
+        : description(description) {
+        updateTime();
+        createdTime = updatedTime;
+
+        int i = 0;
+        while (tasks.contains(i))
+            ++i;
+        id = i;
         tasks.insert({id, *this});
+        std::cout << "Task created successfully (ID: " << id << ")" << std::endl;
+        writeToJson("./tasks.json", *this);
     }
 
-    void update(const std::string_view newDescription)
-    {
-        description = newDescription;
-        updatedTime = std::time(nullptr);
+    Task(
+        const int id,
+        const std::string_view description,
+        const std::string_view status,
+        const std::string_view createdTime,
+        const std::string_view updatedTime
+    )
+        : id(id), description(description), status(status), createdTime(createdTime), updatedTime(updatedTime) {
+        tasks.insert({id, *this});
+        std::cout << "Task Load successfully (ID: " << id << ")" << std::endl;
     }
 
-    ~Task()
-    {
-        // del in json
-    }
-
-    void markStatus(const int newStatus)
-    {
-        status = newStatus;
-    }
-
-    bool operator==(const Task& task) const
-    {
+    bool operator==(const Task &task) const {
         return id == task.id;
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Task& task)
-    {
-        os << task.description << std::endl;
+    friend std::ostream &operator<<(std::ostream &os, const Task &task) {
+        os << "{\n\tID: " << task.id
+                << ",\n\tDescription: " << task.description
+                << ",\n\tStatus: " << task.status
+                << ",\n\tCreated Time: " << task.createdTime
+                << ",\n\tUpdated Time: " << task.updatedTime << "\n}";
         return os;
     }
 
-    size_t hash() const
-    {
+    [[nodiscard]]
+    size_t hash() const {
         return std::hash<int>()(id);
     }
 
+
+
 private:
+    void updateTime() {
+        const std::time_t time = std::time(nullptr);
+        char updateTimeStr[80] = {0};
+        std::strftime(updateTimeStr, 80, "%Y-%m-%d/%H:%M:%S", std::localtime(&time));
+        updateTimeStr[std::strlen(updateTimeStr)] = '\0';
+        updatedTime = updateTimeStr;
+    }
+
     int id;
     std::string description;
     std::string status = "todo";
-    const time_t createdTime;
-    time_t updatedTime;
+    std::string createdTime;
+    std::string updatedTime;
 };
 
 

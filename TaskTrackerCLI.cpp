@@ -3,26 +3,9 @@
 
 #include <iostream>
 
-
-class Hasher
+int main(const int argc, char* argv[])
 {
-public:
-    size_t operator()(const Command& command) const
-    {
-        return command.hash();
-    }
-
-    size_t operator()(const Task& task) const
-    {
-        return task.hash();
-    }
-};
-
-
-int main(int argc, char* argv[])
-{
-    Task task("test");
-    Task::writeTasksToJson("./tasks.json", task);
+    Task::readFromJson("./tasks.json");
     loadCommands();
     if (argc == 1)
     {
@@ -40,15 +23,17 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (argc - 2 < command->argc)
-    {
-        std::cerr << "ERROR: Too few arguments." << std::endl;
-        return 1;
-    }
-    if (argc - 2 > command->argc)
-    {
-        std::cerr << "ERROR: Too many arguments." << std::endl;
-        return 1;
+    if (command->argc != -1) {
+        if (argc - 2 < command->argc)
+        {
+            std::cerr << "ERROR: Too few arguments." << std::endl;
+            return 1;
+        }
+        if (argc - 2 > command->argc)
+        {
+            std::cerr << "ERROR: Too many arguments." << std::endl;
+            return 1;
+        }
     }
 
     try
