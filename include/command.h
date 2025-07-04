@@ -55,14 +55,6 @@ private:
     const std::string_view description;
 };
 
-class Hasher
-{
-public:
-    size_t operator()(const Command& command) const
-    {
-        return command.hash();
-    }
-};
 
 void loadCommands();
 

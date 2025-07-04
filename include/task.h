@@ -4,6 +4,7 @@
 
 #ifndef TASK_H
 #define TASK_H
+
 #include <string>
 #include <string_view>
 #include <chrono>
@@ -13,19 +14,15 @@
 class Task
 {
 public:
-    enum Status
-    {
-        PENDING = 0,
-        IN_PROGRESS = 1,
-        COMPLETED = 2
-    };
+    inline static std::unordered_map<int, Task> tasks;
 
-    static std::unordered_map<int, Task> tasks;
+    static void readTasksFromJson(const std::string& jsonFilePath);
+
+    static void writeTasksToJson(const std::string& jsonFilePath, Task newTask);
 
     explicit Task(const std::string_view description)
         : description(description), createdTime(std::time(nullptr))
     {
-
         for (int i = 0; ; i++)
         {
             // Generate a unique ID for the task
@@ -33,7 +30,7 @@ public:
             break;
         }
         updatedTime = createdTime;
-        tasks.insert({id,*this});
+        tasks.insert({id, *this});
     }
 
     void update(const std::string_view newDescription)
@@ -71,19 +68,9 @@ public:
 private:
     int id;
     std::string description;
-    int status = PENDING; // 0: pending, 1: in progress, 2: completed
+    std::string status = "todo";
     const time_t createdTime;
     time_t updatedTime;
-};
-
-
-class Hasher
-{
-public:
-    size_t operator()(const Task& task) const
-    {
-        return task.hash();
-    }
 };
 
 
